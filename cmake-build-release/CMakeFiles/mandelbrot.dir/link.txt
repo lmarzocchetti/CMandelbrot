@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/mandelbrot.dir/main.c.o -o mandelbrot  -lcsfml-system -lcsfml-window -lcsfml-graphics -lcsfml-audio -lcsfml-network 
