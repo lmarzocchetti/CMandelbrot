@@ -20,10 +20,10 @@ typedef struct {
     sfColor color;
 } colorPos;
 
-double xPos = (SCREEN_WIDTH >> 1) - 200;
-double yPos = (SCREEN_HEIGHT >> 1) - 200 ;
+double xPos = (double) -0.5;
+double yPos = (double) -0.5;
 
-double zoom = 200;
+double zoom = (double) 0.0037;
 
 double increment = 1;
 
@@ -68,19 +68,28 @@ int iterate(double re_c, double im_c, int limit) {
     return depth;
 }
 
-/*void calculate_mandelbrot(sfImage* img, int max_iterations) {
-    int x, y;
+int iterate_julia(double re_c, double im_c, int limit, double R) {
+    int depth = 0;
+    double re_z = 0;
+    double im_z = 0;
+    double re_z_sqr = 0;
+    double im_z_sqr = 0;
 
-    for(x = 0; x < SCREEN_WIDTH; ++x) {
-        for(y = 0; y < SCREEN_HEIGHT; ++y) {
-            double re_c = xPos/SCREEN_WIDTH + (x - (SCREEN_WIDTH >> 1)) / zoom;
-            double im_c = yPos/SCREEN_HEIGHT + (y - (SCREEN_HEIGHT >> 1)) / zoom;
-            int depth = iterate(re_c , im_c , max_iterations);
+    while(re_z_sqr + im_z_sqr < R*R && depth++ < limit) {
+        re_z_sqr = re_z * re_z;
+        im_z_sqr = im_z * im_z;
 
-            sfImage_setPixel(img, x, y, sfColor_fromRGB(depth % 256, (depth * 3) % 256, (depth * 7 + 39) % 256));
-        }
+        im_z = 2 * re_z * im_z + im_c;    // perform iteration
+        re_z = re_z_sqr - im_z_sqr + re_c;
     }
-}*/
+    if(depth != limit) {
+        return depth;
+    }
+    else {
+        return 1;
+    }
+
+}
 
 void* calculate_mandelbrot_thread(void *threadid) {
     int x, y;
@@ -89,10 +98,12 @@ void* calculate_mandelbrot_thread(void *threadid) {
 
     for(x = (int) id * THREAD_FACTOR; x < id * THREAD_FACTOR + THREAD_FACTOR; ++x) {
         for(y = 0; y < SCREEN_HEIGHT; ++y) {
-            double re_c = xPos/SCREEN_WIDTH + (x - (SCREEN_WIDTH >> 1)) / zoom;
-            double im_c = yPos/SCREEN_HEIGHT + (y - (SCREEN_HEIGHT >> 1)) / zoom;
-            int depth = iterate(re_c , im_c , maxiter);
-
+            //double re_c = xPos/SCREEN_WIDTH + (x - (SCREEN_WIDTH >> 1)) / zoom;
+            //double im_c = yPos/SCREEN_HEIGHT + (y - (SCREEN_HEIGHT >> 1)) / zoom;
+            double re_c = xPos + (x - (SCREEN_WIDTH >> 1)) * zoom;
+            double im_c = yPos + (y - (SCREEN_HEIGHT >> 1)) * zoom;
+            //int depth = iterate(re_c , im_c , maxiter);
+            int depth = iterate_julia(re_c , im_c , maxiter,  2.5);
             sfImage_setPixel(image, x, y, sfColor_fromRGB(depth % 256, (depth * 3) % 256, (depth * 7 + 39) % 256));
         }
     }
@@ -186,7 +197,7 @@ int main(int argc, char* argv[]) {
     text = sfText_create();
     sfVector2f tp = {20, 20};
     sfText_setPosition(text, tp);
-    sfText_setCharacterSize(text, 40);
+    sfText_setCharacterSize(text, 25);
     sfText_setColor(text, sfWhite);
     sfText_setFont(text, sfFont_createFromFile("/home/rhohen/CLionProjects/mandelbrot/arial.ttf"));
 
@@ -200,28 +211,33 @@ int main(int argc, char* argv[]) {
             }
             if (event.type == sfEvtKeyReleased) {
                 if(event.key.code == sfKeySpace) {
-                    zoom += 1100 * increment;
-                    increment *= 3;
+                    //zoom += 1100 * increment;
+                    //increment *= 3;
+                    zoom *= 0.8;
                     init_threads_and_calculate(threads);
                     //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyLeft) {
-                    xPos -= inc_pos;
+                    //xPos -= inc_pos;
+                    xPos -= 10 * zoom;
                     init_threads_and_calculate(threads);
                     //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyRight) {
-                    xPos += inc_pos;
+                    //xPos += inc_pos;
+                    xPos += 10 * zoom;
                     init_threads_and_calculate(threads);
                     //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyUp) {
-                    yPos -= inc_pos;
+                    //yPos -= inc_pos;
+                    yPos -= 10 * zoom;
                     init_threads_and_calculate(threads);
                     //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyDown) {
-                    yPos += inc_pos;
+                    // += inc_pos;
+                    yPos += 10 * zoom;
                     init_threads_and_calculate(threads);
                     //calculate_mandelbrot(image, maxiter);
                 }
