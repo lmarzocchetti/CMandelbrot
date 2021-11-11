@@ -12,7 +12,7 @@
 #define SCREEN_WIDTH 600
 #define SCREEN_HEIGHT 600
 
-#define NUM_THREADS 12
+#define NUM_THREADS 10
 #define THREAD_FACTOR (SCREEN_WIDTH / NUM_THREADS)
 
 //// GLOBAL VARIABLES FOR THREADS  ////
@@ -175,23 +175,23 @@ int main(int argc, char* argv[]) {
             }
             if (event.type == sfEvtKeyReleased) {
                 if(event.key.code == sfKeySpace) {
-                    zoom *= 0.8;
+                    zoom *= 0.7;
                     init_threads_and_calculate(threads);
                 }
                 else if(event.key.code == sfKeyLeft) {
-                    xPos -= 10 * zoom;
+                    xPos -= 10 * zoom * 1.3;
                     init_threads_and_calculate(threads);
                 }
                 else if(event.key.code == sfKeyRight) {
-                    xPos += 10 * zoom;
+                    xPos += 10 * zoom * 1.3;
                     init_threads_and_calculate(threads);
                 }
                 else if(event.key.code == sfKeyUp) {
-                    yPos -= 10 * zoom;
+                    yPos -= 10 * zoom * 1.3;
                     init_threads_and_calculate(threads);
                 }
                 else if(event.key.code == sfKeyDown) {
-                    yPos += 10 * zoom;
+                    yPos += 10 * zoom * 1.3;
                     init_threads_and_calculate(threads);
                 }
             }
