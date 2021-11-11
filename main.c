@@ -25,8 +25,6 @@ double yPos = (double) -0.5;
 
 double zoom = (double) 0.0037;
 
-double increment = 1;
-
 sfImage* image;
 int maxiter;
 double inc_pos;
