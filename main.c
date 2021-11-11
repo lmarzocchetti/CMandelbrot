@@ -12,43 +12,24 @@
 #define SCREEN_WIDTH 600
 #define SCREEN_HEIGHT 600
 
-#define NUM_THREADS 12 // 15
+#define NUM_THREADS 12
 #define THREAD_FACTOR (SCREEN_WIDTH / NUM_THREADS)
 
-typedef struct {
-    double position;
-    sfColor color;
-} colorPos;
-
+//// GLOBAL VARIABLES FOR THREADS  ////
 double xPos = (double) -0.5;
 double yPos = (double) -0.5;
-
 double zoom = (double) 0.0037;
-
 sfImage* image;
 int maxiter;
-double inc_pos;
-sfText* text;
-char result[50];
+//////////////////////////////////////
 
-colorPos* init_palette() {
-    colorPos* ret = (colorPos*) malloc(5*sizeof(colorPos));
-
-    colorPos c1 = {0.0, sfColor_fromRGB(0, 7, 100)};
-    colorPos c2 = {0.16, sfColor_fromRGB(32, 107, 203)};
-    colorPos c3 = {0.42, sfColor_fromRGB(237, 255, 255)};
-    colorPos c4 = {0.6425, sfColor_fromRGB(255, 170, 0)};
-    colorPos c5 = {0.8575, sfColor_fromRGB(0, 2, 0)};
-
-    ret[0] = c1;
-    ret[1] = c2;
-    ret[2] = c3;
-    ret[3] = c4;
-    ret[4] = c5;
-
-    return ret;
-}
-
+/**
+ * Iterate function for mandelbrot set
+ * @param re_c Define the real part of the mandelbrot function
+ * @param im_c Define the imaginary part of the mandelbrot function
+ * @param limit Maximum iteration
+ * @return the number of iteration explored (depth)
+ */
 int iterate(double re_c, double im_c, int limit) {
     int depth = 0;
     double re_z = 0;
@@ -60,54 +41,46 @@ int iterate(double re_c, double im_c, int limit) {
         re_z_sqr = re_z * re_z;
         im_z_sqr = im_z * im_z;
 
-        im_z = 2 * re_z * im_z + im_c;    // perform iteration
+        im_z = 2 * re_z * im_z + im_c;
         re_z = re_z_sqr - im_z_sqr + re_c;
     }
     return depth;
 }
 
-int iterate_julia(double re_c, double im_c, int limit, double R) {
-    int depth = 0;
-    double re_z = 0;
-    double im_z = 0;
-    double re_z_sqr = 0;
-    double im_z_sqr = 0;
-
-    while(re_z_sqr + im_z_sqr < R*R && depth++ < limit) {
-        re_z_sqr = re_z * re_z;
-        im_z_sqr = im_z * im_z;
-
-        im_z = 2 * re_z * im_z + im_c;    // perform iteration
-        re_z = re_z_sqr - im_z_sqr + re_c;
-    }
-    if(depth != limit) {
-        return depth;
-    }
-    else {
-        return 1;
-    }
-
-}
-
+/**
+ * Calculate a part of the image of the mandelbrot set,
+ * based of the number of threads and the SCREEN_WIDTH (THREAD_FACTOR) @see macros
+ *
+ * @param threadid the Id of the thread
+ * @return is the return value of the thread (NULL)
+ */
 void* calculate_mandelbrot_thread(void *threadid) {
     int x, y;
 
+    double re_c;
+    double im_c;
+
     long id = (long) threadid;
+    int depth;
 
     for(x = (int) id * THREAD_FACTOR; x < id * THREAD_FACTOR + THREAD_FACTOR; ++x) {
         for(y = 0; y < SCREEN_HEIGHT; ++y) {
-            //double re_c = xPos/SCREEN_WIDTH + (x - (SCREEN_WIDTH >> 1)) / zoom;
-            //double im_c = yPos/SCREEN_HEIGHT + (y - (SCREEN_HEIGHT >> 1)) / zoom;
-            double re_c = xPos + (x - (SCREEN_WIDTH >> 1)) * zoom;
-            double im_c = yPos + (y - (SCREEN_HEIGHT >> 1)) * zoom;
-            //int depth = iterate(re_c , im_c , maxiter);
-            int depth = iterate_julia(re_c , im_c , maxiter,  2.5);
+            re_c = xPos + (x - (SCREEN_WIDTH >> 1)) * zoom;
+            im_c = yPos + (y - (SCREEN_HEIGHT >> 1)) * zoom;
+            depth = iterate(re_c , im_c , maxiter);
             sfImage_setPixel(image, x, y, sfColor_fromRGB(depth % 256, (depth * 3) % 256, (depth * 7 + 39) % 256));
         }
     }
-    return NULL;
+    pthread_exit(NULL);
 }
 
+/**
+ * Clear the screen, set the image on the sprite, and display the window
+ *
+ * @param window the window on the program paint the calculated mandelbrot photo
+ * @param spr a sprite for printing the image (@see global variable: sfImage image)
+ * @param txt texture for setting the sprite and print on the window
+ */
 void repaint(sfRenderWindow* window, sfSprite* spr, sfTexture* txt) {
     sfRenderWindow_clear(window, sfBlack);
 
@@ -115,14 +88,15 @@ void repaint(sfRenderWindow* window, sfSprite* spr, sfTexture* txt) {
     sfSprite_setTexture(spr,txt, false);
     sfRenderWindow_drawSprite(window, spr, NULL);
 
-    memset(result, 0, 50);
-    sprintf(result, "%lf", inc_pos);
-    sfText_setString(text, result);
-    sfRenderWindow_drawText(window, text, NULL);
-
     sfRenderWindow_display(window);
 }
 
+/**
+ * Init all the threads and start for the function calculate_mandelbrot_thread.
+ * Next join all threads and control their return values
+ *
+ * @param thrds Array of threads based of macro NUM_THREADS
+ */
 void init_threads_and_calculate(pthread_t * thrds) {
     int rc;
 
@@ -140,12 +114,9 @@ void init_threads_and_calculate(pthread_t * thrds) {
         ret = pthread_join(thrds[i], &retval);
         if (retval == PTHREAD_CANCELED)
             printf("The thread was canceled - ");
-        /*else
-            printf("Returned value %ld - ", (long)retval);*/
 
         switch (ret) {
-            case 0:
-                //printf("The thread joined successfully\n");
+            case 0 :
                 break;
             case EDEADLK:
                 printf("Deadlock detected\n");
@@ -160,124 +131,79 @@ void init_threads_and_calculate(pthread_t * thrds) {
                 printf("Error occurred when joining the thread\n");
         }
     }
-    //pthread_exit(NULL);
-
 }
 
+/**
+ * Do some stuff, see the function definition
+ *
+ * @param argc num of argument + 1
+ * @param argv only 1 argument, that is the value of maximum iterations
+ * @return
+ */
 int main(int argc, char* argv[]) {
     sfVideoMode mode = {SCREEN_WIDTH, SCREEN_HEIGHT, 32};
     sfRenderWindow* window;
     sfSprite* sprite = sfSprite_create();
     sfTexture* texture = sfTexture_create(SCREEN_WIDTH, SCREEN_HEIGHT);
-    //colorPos* palette;
     sfEvent event;
     pthread_t threads[NUM_THREADS];
-    inc_pos = 30.0;
 
+    /// Control if the arguments is different from 1
     if(argc != 2) {
         printf("Usage:   %s <maxiter>\n", argv[0]);
         printf("Example: %s 1000\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    maxiter = atoi(argv[1]);
+    /// Take the argument passed by command line
+    maxiter = (int) strtol(argv[1], NULL, 10);
 
-    // Initialize the render window
+    /// Initialize the render window and the image
     window = sfRenderWindow_create(mode, "Mandelbrot set", sfClose, NULL);
     sfRenderWindow_setFramerateLimit(window, 30);
-
     image = sfImage_create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    //palette = init_palette();
-
+    /// Calculate the first iteration
     init_threads_and_calculate(threads);
 
-    text = sfText_create();
-    sfVector2f tp = {20, 20};
-    sfText_setPosition(text, tp);
-    sfText_setCharacterSize(text, 25);
-    sfText_setColor(text, sfWhite);
-    sfText_setFont(text, sfFont_createFromFile("/home/rhohen/CLionProjects/mandelbrot/arial.ttf"));
-
-    //calculate_mandelbrot(image, maxiter);
-
+    /// Events
     while(sfRenderWindow_isOpen(window)) {
-        // EVENTS
+        /// EVENTS
         while (sfRenderWindow_pollEvent(window, &event)) {
             if (event.type == sfEvtClosed) {
                 sfRenderWindow_close(window);
             }
             if (event.type == sfEvtKeyReleased) {
                 if(event.key.code == sfKeySpace) {
-                    //zoom += 1100 * increment;
-                    //increment *= 3;
                     zoom *= 0.8;
                     init_threads_and_calculate(threads);
-                    //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyLeft) {
-                    //xPos -= inc_pos;
                     xPos -= 10 * zoom;
                     init_threads_and_calculate(threads);
-                    //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyRight) {
-                    //xPos += inc_pos;
                     xPos += 10 * zoom;
                     init_threads_and_calculate(threads);
-                    //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyUp) {
-                    //yPos -= inc_pos;
                     yPos -= 10 * zoom;
                     init_threads_and_calculate(threads);
-                    //calculate_mandelbrot(image, maxiter);
                 }
                 else if(event.key.code == sfKeyDown) {
-                    // += inc_pos;
                     yPos += 10 * zoom;
                     init_threads_and_calculate(threads);
-                    //calculate_mandelbrot(image, maxiter);
-                }
-                else if(event.key.code == sfKeyJ) {
-                    if(inc_pos > 1) {
-                        inc_pos -= 1;
-                    }
-                    else if(inc_pos <= 1 && inc_pos > 0) {
-                        inc_pos /= 10;
-                    }
-                    else {
-                        inc_pos = 30;
-                    }
-                }
-                else if(event.key.code == sfKeyK) {
-                    if(inc_pos < 30 && inc_pos > 1) {
-                        inc_pos += 1;
-                    }
-                    else if(inc_pos <= 1 && inc_pos > 0) {
-                        inc_pos *= 10;
-                    }
-                    else {
-                        inc_pos = 30;
-                    }
                 }
             }
-            /*
-            else if (event.type == sfEvtMouseButtonReleased) {
-
-                }
-            }*/
         }
-        // UPDATES
+        /// UPDATES
         repaint(window, sprite, texture);
     }
 
-    // DESTROY
+    /// DESTROY
     sfImage_destroy(image);
     sfTexture_destroy(texture);
     sfSprite_destroy(sprite);
-    //window
     sfRenderWindow_destroy(window);
-    pthread_exit(NULL);
     return EXIT_SUCCESS;
 }
