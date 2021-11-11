@@ -18,6 +18,10 @@ Simply launch the build.sh file which is the gcc command to compile with all fla
 ```
 $ ./build.sh
 ```
+If the script is not executable launch this command and relaunch the build.sh:
+```
+$ chmod 755 build.sh
+```
 
 ### Launch
 Launch the program with 1 command line argument which is the maximum iteration to compute
