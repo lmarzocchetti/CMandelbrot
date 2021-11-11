@@ -10,7 +10,7 @@ $ sudo apt install libsfml-dev libcsfml-dev
 ```
 Arch Linux:
 ```
-$ pacman -S sfml csfml
+$ sudo pacman -S sfml csfml
 ```
 
 ### Install
