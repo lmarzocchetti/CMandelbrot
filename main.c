@@ -17,7 +17,7 @@
 
 //// GLOBAL VARIABLES FOR THREADS  ////
 double xPos = (double) -0.5;
-double yPos = (double) -0.5;
+double yPos = (double) 0;
 double zoom = (double) 0.0037;
 sfImage* image;
 int maxiter;
