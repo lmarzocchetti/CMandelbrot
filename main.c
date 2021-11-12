@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     maxiter = (int) strtol(argv[1], NULL, 10);
 
     /// Initialize the render window and the image
-    window = sfRenderWindow_create(mode, "Mandelbrot set", sfClose, NULL);
+    window = sfRenderWindow_create(mode, "CMandelbrot", sfClose, NULL);
     sfRenderWindow_setFramerateLimit(window, 30);
     image = sfImage_create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
