@@ -10,13 +10,17 @@ $ sudo apt install libsfml-dev libcsfml-dev
 ```
 Arch Linux:
 ```
-$ pacman -S sfml csfml
+$ sudo pacman -S sfml csfml
 ```
 
 ### Install
 Simply launch the build.sh file which is the gcc command to compile with all flag and optimizations
 ```
 $ ./build.sh
+```
+If the script is not executable launch this command and relaunch the build.sh:
+```
+$ chmod 755 build.sh
 ```
 
 ### Launch
