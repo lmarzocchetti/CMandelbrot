@@ -38,5 +38,5 @@ $ ./cmandelbrot <NUM_ITERATION> (ex: $ ./cmandelbrot 1000)
 - [ ] Introduce a Color palette system for better color;
 - [ ] Introduce a new moving system with mouse and pointer
 - [ ] Change the SFML library for a lower level lib (like OpenGL);
-- [ ] Don't recreate the threads but use the same 12;
+- [ ] Don't recreate the threads but use the same 10;
 - [ ] Introduce the Julia mode for explore the Julia set too
