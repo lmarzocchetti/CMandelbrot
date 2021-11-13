@@ -1,5 +1,6 @@
 # CMandelbrot
 Mandelbrot Viewer in C using CSFML (SFML wrapper) for the graphic part. The application is multithread.
+![Screenshot_20211113_183420](https://user-images.githubusercontent.com/61746163/141653472-3668a91c-0d54-4320-b6e8-2c2f1959e4e8.png)
 
 ### Prerequisite for install
 Install from your GNU/Linux package manager the libraries for SFML
