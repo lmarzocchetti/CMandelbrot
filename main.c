@@ -24,6 +24,11 @@ int maxiter;
 sfColor* palette;
 //////////////////////////////////////
 
+/**
+ * Function which precompute all the 16 colors.
+ *
+ * @return A pointer to the array of sfColor (Palette)
+ */
 sfColor* set_color_palette() {
     sfColor* ret = (sfColor*) calloc(16, sizeof(sfColor));
 
@@ -49,6 +54,7 @@ sfColor* set_color_palette() {
 
 /**
  * Iterate function for mandelbrot set
+ *
  * @param re_c Define the real part of the mandelbrot function
  * @param im_c Define the imaginary part of the mandelbrot function
  * @param limit Maximum iteration
