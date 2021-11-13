@@ -21,7 +21,31 @@ double yPos = (double) 0;
 double zoom = (double) 0.0037;
 sfImage* image;
 int maxiter;
+sfColor* palette;
 //////////////////////////////////////
+
+sfColor* set_color_palette() {
+    sfColor* ret = (sfColor*) calloc(16, sizeof(sfColor));
+
+    ret[0] = (sfColor) {66, 30, 15, 255};
+    ret[1] = (sfColor) {25, 7, 26, 255};
+    ret[2] = (sfColor){9, 1, 47, 255};
+    ret[3] = (sfColor){4, 4, 73, 255};
+    ret[4] = (sfColor){0, 7, 100, 255};
+    ret[5] = (sfColor){12, 44, 138, 255};
+    ret[6] = (sfColor){24, 82, 177, 255};
+    ret[7] = (sfColor){57, 125, 209, 255};
+    ret[8] = (sfColor){134, 181, 229, 255};
+    ret[9] = (sfColor){211, 236, 248, 255};
+    ret[10] = (sfColor){241, 233, 191, 255};
+    ret[11] = (sfColor){248, 201, 95, 255};
+    ret[12] = (sfColor){255, 170, 0, 255};
+    ret[13] = (sfColor){204, 128, 0, 255};
+    ret[14] = (sfColor){153, 87, 0, 255};
+    ret[15] = (sfColor){106, 52, 3, 255};
+
+    return ret;
+}
 
 /**
  * Iterate function for mandelbrot set
@@ -68,7 +92,14 @@ void* calculate_mandelbrot_thread(void *threadid) {
             re_c = xPos + (x - (SCREEN_WIDTH >> 1)) * zoom;
             im_c = yPos + (y - (SCREEN_HEIGHT >> 1)) * zoom;
             depth = iterate(re_c , im_c , maxiter);
-            sfImage_setPixel(image, x, y, sfColor_fromRGB(depth % 256, (depth * 3) % 256, (depth * 7 + 39) % 256));
+
+            if (depth < maxiter && depth > 0) {
+                sfImage_setPixel(image, x, y, palette[depth % 16]);
+            }
+            else {
+                sfImage_setPixel(image, x, y, sfBlack);
+            }
+
         }
     }
     pthread_exit(NULL);
@@ -155,12 +186,15 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    /// Initialize the color Palette
+    palette = set_color_palette();
+
     /// Take the argument passed by command line
     maxiter = (int) strtol(argv[1], NULL, 10);
 
     /// Initialize the render window and the image
     window = sfRenderWindow_create(mode, "CMandelbrot", sfClose, NULL);
-    sfRenderWindow_setFramerateLimit(window, 30);
+    sfRenderWindow_setFramerateLimit(window, 60);
     image = sfImage_create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     /// Calculate the first iteration
@@ -205,5 +239,6 @@ int main(int argc, char* argv[]) {
     sfTexture_destroy(texture);
     sfSprite_destroy(sprite);
     sfRenderWindow_destroy(window);
+    free(palette);
     return EXIT_SUCCESS;
 }
