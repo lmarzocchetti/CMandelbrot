@@ -40,3 +40,5 @@ $ ./cmandelbrot <NUM_ITERATION> (ex: $ ./cmandelbrot 1000)
 - [ ] Change the SFML library for a lower level lib (like OpenGL);
 - [ ] Don't recreate the threads but use the same 10;
 - [ ] Introduce the Julia mode for explore the Julia set too
+
+Cazzo
